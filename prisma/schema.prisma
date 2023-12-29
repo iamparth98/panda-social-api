@@ -1,0 +1,80 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Users {
+  userId     String    @id @default(cuid())
+  username   String    @unique
+  email      String    @unique
+  password   String
+  name       String
+  coverPic   String?
+  profilePic String?
+  city       String?
+  website    String?
+  Posts      Posts[]
+  Comments   Comments?
+  Stories    Stories[]
+
+  Likes Likes[]
+
+  Follower      Relationships[] @relation("follower")
+  Followed      Relationships[] @relation("followed")
+  Relationships Relationships[]
+}
+
+model Posts {
+  postId     String     @id @default(cuid())
+  desc       String?
+  img        String?
+  postUser   Users      @relation(fields: [postUserId], references: [userId], onDelete: Cascade, onUpdate: Cascade)
+  postUserId String     @unique
+  createdAt  DateTime
+  Comments   Comments[]
+  Likes      Likes[]
+}
+
+model Comments {
+  commentId     String   @id @default(cuid())
+  desc          String
+  // img       String?
+  commentUser   Users    @relation(fields: [commentUserId], references: [userId], onDelete: Cascade, onUpdate: Cascade)
+  commentUserId String   @unique
+  commentPost   Posts    @relation(fields: [commentPostId], references: [postId], onDelete: Cascade, onUpdate: Cascade)
+  commentPostId String   @unique
+  createdAt     DateTime
+  postsId       String
+}
+
+model Stories {
+  storyId     String @id @default(cuid())
+  img         String
+  storyUserId String
+  storyUser   Users  @relation(fields: [storyUserId], references: [userId], onDelete: Cascade, onUpdate: Cascade)
+}
+
+model Relationships {
+  followerRelationshipId String  @id @default(cuid())
+  followerUserId         String
+  followerUser           Users   @relation("follower", fields: [followerUserId], references: [userId])
+  followedUserId         String
+  followedUser           Users   @relation("followed", fields: [followedUserId], references: [userId])
+  Users                  Users?  @relation(fields: [usersUserId], references: [userId])
+  usersUserId            String?
+}
+
+model Likes {
+  likeId     String @id @default(cuid())
+  likeUserId String
+  likeUser   Users  @relation(fields: [likeUserId], references: [userId])
+  likepostId String
+  likepost   Posts  @relation(fields: [likepostId], references: [postId])
+}
